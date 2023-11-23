@@ -9,8 +9,8 @@ FlaskApp is a simple Flask web application that provides API endpoints for user 
 1. **Clone the repository:**
 
    ```
-   git clone <repository_url>
-   cd myflaskapp
+   git clone https://github.com/vanisett1/flask-app
+   cd flask-app
    ```
 
 2. **Create a virtual environment and activate it:**
@@ -39,6 +39,10 @@ FlaskApp is a simple Flask web application that provides API endpoints for user 
    ```
 
 6. **Access the web page at [http://localhost:5000](http://localhost:5000).**
+
+## Dockerfile
+
+Alteratively use Dockerfile to build and run the container for local testing.
 
 ## API Endpoints
 

@@ -1,7 +1,7 @@
 import inquirer
 import subprocess
 
-BASE_URL = "http://localhost:5000"  # Base URL for the API
+BASE_URL = "https://flask-app.yellowcoast-6fa59d16.eastus.azurecontainerapps.io"  # Base URL for the API
 
 def run_curl_command(curl_cmd):
     try:

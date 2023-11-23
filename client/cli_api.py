@@ -1,7 +1,7 @@
 import inquirer
 import subprocess
 
-BASE_URL = "https://interview.canadacentral.cloudapp.azure.com/"  # Base URL for the API
+BASE_URL = "https://ufoalien.azurewebsites.net"  # Base URL for the API
 
 def run_curl_command(curl_cmd):
     try:

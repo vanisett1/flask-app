@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Technical Assessment</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        p { max-width: 750px; }
+        body { margin-left: 20px; }
+    </style>
+</head>
+<body>
+    <h1>Assignment</h1>
+    <p>Welcome to the technical assessment! Please refer to the corresponding prompt dependent on your desired role. These prompts are not intended to be difficult or time intensive, rather provide an applicable reference to your implementation practices. An ideal response is not only functionally complete, but is well documented and easy to maintain.</p>
+
+    <h3>DevOps Specialist</h3>
+    <p>Design and implement a functional HTTPS API client for this webserver. Please consider, and implement, a design pattern that satisfies a variety of usecases. If you strive to impress, feel free to attempt the Sn. DevOps Specialist assessment. This assessment is expected to take 1 - 4 hours to complete and to be less than 100 lines of code.</p>
+
+    <h3>Senior DevOps Specialist</h3>
+    <p>Design and implement a replicant HTTPS API server using the cloud technologies of your choosing. Please consider, and implement, technologies that are representative of how you would build, and maintain, this server in a production environment (e.g. TLS termination). If you require a compute resource, please reach out to the hiring manager and one will be provided for you. This assessment is expected to take 4 - 8 hours to complete and to be less than 500 lines of code.</p>
+
+    <h2>Requirements</h2>
+    <p>The API client or API server must comply with the following requirements.</p>
+
+    <h3>Authentication</h3>
+    <p>Requests must include an <code>AUTH_TOKEN</code> header. This token will have been provided to you alongside the initial reference to this webserver. Client requests to authenticated endpoints (i.e., every endpoint except this one) without a valid token will return a 401 (Unauthorized) response.</p>
+
+    <h3>API End Points</h3>
+    <p>This webserver hosts a single API endpoint, <code>/v1/user</code>. The endpoint is scoped with a <code>user_id</code>, e.g., <code>/v1/user?user_id=INT</code>. The following methods are supported: <code>POST</code>, <code>PUT</code>, <code>GET</code>, <code>DELETE</code>. Requests are scoped with a valid <code>user_id</code>, with the exception of <code>POST</code>, which returns the <code>user_id</code> in the request response object.</p>
+
+    <p>Successful <code>POST</code>, <code>PUT</code>, and <code>GET</code> responses will be of the form <pre>{'users': [{"user_id": INT, "username": STRING, "password": SHA1(USERNAME+PASSWORD)}], 'errors': []}</pre></p>
+    <p><code>DELETE</code> requests will be of the form <pre>{'users': [], 'errors': []}</pre></p>
+
+    <h4>POST</h4>
+    <p>Create a user. The <code>POST</code> body must be of the form <pre>{"username": "STRING", "password": "STRING"}</pre></p>
+
+    <h4>PUT</h4>
+    <p>Update a user. The <code>PUT</code> body must be of the form <pre>{"username": "STRING", "password": "STRING"}</pre></p>
+
+    <h4>GET</h4>
+    <p>Return a user. If the <code>user_id</code> parameter is omitted, all users are returned.</p>
+
+    <h4>DELETE</h4>
+    <p>Delete a user.</p>
+</body>
+</html>

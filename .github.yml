@@ -1,0 +1,36 @@
+name: Deploy to Azure
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Log in to the Azure CLI
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Build and push Docker container
+      uses: azure/docker-login@v1
+      with:
+        login-server: <your Azure container registry login server>
+        username: ${{ secrets.REGISTRY_USERNAME }}
+        password: ${{ secrets.REGISTRY_PASSWORD }}
+      run: |
+        docker build . -t <your Azure container registry login server>/myapp:${{ github.sha }}
+        docker push <your Azure container registry login server>/myapp:${{ github.sha }}
+
+    - name: Deploy container to Azure
+      uses: azure/webapps-deploy@v2
+      with:
+        app-name: <Your Azure Web App name>
+        slot-name: <If you are using a deployment slot, specify it here>
+        publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+        images: '<your Azure container registry login server>/myapp:${{ github.sha }}'

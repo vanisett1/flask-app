@@ -119,3 +119,5 @@ The deployment process is triggered automatically whenever changes are pushed to
 ## Monitoring Deployment
 
 After each push to `main`, you can monitor the progress of your deployment in the Actions tab of your GitHub repository. Successful deployment will update your Flask application on the Azure Web App service.
+
+Making this change to deploy flask-api to Azure webapps

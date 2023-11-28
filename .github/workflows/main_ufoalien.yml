@@ -1,51 +1,123 @@
 # Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
 # More GitHub Actions for Azure: https://github.com/Azure/actions
 
-name: Build and deploy container app to Azure Web App - ufoalien
+
+name: Build, Deploy, and Manage Azure Infrastructure
 
 on:
   push:
     branches:
       - main
   workflow_dispatch:
+    inputs:
+      teardown:
+        description: 'Destroy Infrastructure (type "destroy" to confirm)'
+        required: false
+        default: ''
 
 jobs:
-  build:
-    runs-on: 'ubuntu-latest'
-
+  setup_infrastructure:
+    runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+      - name: Create Resource Group
+        run: az group create --name ufoalien-rg --location eastus
 
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v2
+      - name: Create Azure Container Registry
+        run: az acr create --resource-group ufoalien-rg --name vflask --sku Basic
 
-    - name: Log in to registry
-      uses: docker/login-action@v2
-      with:
-        registry: https://vflask.azurecr.io/
-        username: ${{ secrets.AzureAppService_ContainerUsername_1fbbac04975145c1a2480e58c22308c1 }}
-        password: ${{ secrets.AzureAppService_ContainerPassword_fb20cbdb167e473a9832bc0ebd538f69 }}
+      # Add additional steps to create other required resources like Azure Web App, etc.
 
-    - name: Build and push container image to registry
-      uses: docker/build-push-action@v3
-      with:
-        push: true
-        tags: vflask.azurecr.io/${{ secrets.AzureAppService_ContainerUsername_1fbbac04975145c1a2480e58c22308c1 }}/flask-app:${{ github.sha }}
-        file: ./Dockerfile
+  build:
+    runs-on: ubuntu-latest
+    needs: setup_infrastructure
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Log in to registry
+        uses: docker/login-action@v2
+        with:
+          registry: https://vflask.azurecr.io/
+          username: ${{ secrets.AzureAppService_ContainerUsername_1fbbac04975145c1a2480e58c22308c1 }}
+          password: ${{ secrets.AzureAppService_ContainerPassword_fb20cbdb167e473a9832bc0ebd538f69 }}
+
+      - name: Build and push container image to registry
+        uses: docker/build-push-action@v3
+        with:
+          push: true
+          tags: vflask.azurecr.io/${{ secrets.AzureAppService_ContainerUsername_1fbbac04975145c1a2480e58c22308c1 }}/flask-app:${{ github.sha }}
+          file: ./Dockerfile
 
   deploy:
     runs-on: ubuntu-latest
     needs: build
-    environment:
-      name: 'production'
-      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
-
     steps:
-    - name: Deploy to Azure Web App
-      id: deploy-to-webapp
-      uses: azure/webapps-deploy@v2
-      with:
-        app-name: 'ufoalien'
-        slot-name: 'production'
-        publish-profile: ${{ secrets.AzureAppService_PublishProfile_2f50cf7fb11f4c43b178acc2fbc21eb3 }}
-        images: 'vflask.azurecr.io/${{ secrets.AzureAppService_ContainerUsername_1fbbac04975145c1a2480e58c22308c1 }}/flask-app:${{ github.sha }}'
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: 'ufoalien'
+          slot-name: 'production'
+          publish-profile: ${{ secrets.AzureAppService_PublishProfile_2f50cf7fb11f4c43b178acc2fbc21eb3 }}
+          images: 'vflask.azurecr.io/${{ secrets.AzureAppService_ContainerUsername_1fbbac04975145c1a2480e58c22308c1 }}/flask-app:${{ github.sha }}'
+
+  teardown_infrastructure:
+    if: ${{ github.event.inputs.teardown == 'destroy' }}
+    runs-on: ubuntu-latest
+    needs: [setup_infrastructure, deploy]
+    steps:
+      - name: Tear down Resource Group
+        run: |
+          az group delete --name ufoalien-rg --yes --no-wait
+
+
+
+# name: Build and deploy container app to Azure Web App - ufoalien
+
+# on:
+#   push:
+#     branches:
+#       - main
+#   workflow_dispatch:
+
+# jobs:
+#   build:
+#     runs-on: 'ubuntu-latest'
+
+#     steps:
+#     - uses: actions/checkout@v2
+
+#     - name: Set up Docker Buildx
+#       uses: docker/setup-buildx-action@v2
+
+#     - name: Log in to registry
+#       uses: docker/login-action@v2
+#       with:
+#         registry: https://vflask.azurecr.io/
+#         username: ${{ secrets.AzureAppService_ContainerUsername_1fbbac04975145c1a2480e58c22308c1 }}
+#         password: ${{ secrets.AzureAppService_ContainerPassword_fb20cbdb167e473a9832bc0ebd538f69 }}
+
+#     - name: Build and push container image to registry
+#       uses: docker/build-push-action@v3
+#       with:
+#         push: true
+#         tags: vflask.azurecr.io/${{ secrets.AzureAppService_ContainerUsername_1fbbac04975145c1a2480e58c22308c1 }}/flask-app:${{ github.sha }}
+#         file: ./Dockerfile
+
+#   deploy:
+#     runs-on: ubuntu-latest
+#     needs: build
+#     environment:
+#       name: 'production'
+#       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+
+#     steps:
+#     - name: Deploy to Azure Web App
+#       id: deploy-to-webapp
+#       uses: azure/webapps-deploy@v2
+#       with:
+#         app-name: 'ufoalien'
+#         slot-name: 'production'
+#         publish-profile: ${{ secrets.AzureAppService_PublishProfile_2f50cf7fb11f4c43b178acc2fbc21eb3 }}
+#         images: 'vflask.azurecr.io/${{ secrets.AzureAppService_ContainerUsername_1fbbac04975145c1a2480e58c22308c1 }}/flask-app:${{ github.sha }}'

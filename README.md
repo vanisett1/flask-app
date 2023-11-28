@@ -86,7 +86,7 @@ The `client_api.py` script is a command-line tool for interacting with the Flask
 - **Get User**: Retrieve information about one or all users.
 - **Delete User**: Remove a user from the system.
 
-This tool sends requests to the FlaskApp API server hosted at `https://ufoalien.azurewebsites.net`.
+This tool sends requests to the FlaskApp API server hosted at `https://ufoalienwebapp.azurewebsites.net`.
 
 ** Change BASE_URL to http://localhost:5000 for local testing**
 

@@ -47,11 +47,18 @@ jobs:
         run: |
           az appservice plan create --name ${{ env.WEBAPP_NAME }} --resource-group ${{ env.RESOURCE_GROUP }} --sku B1 --is-linux --location ${{ env.LOCATION }}
 
-
       - name: Create Azure Web App for Containers
         run: |
           az webapp create --resource-group ${{ env.RESOURCE_GROUP }} --plan ${{ env.WEBAPP_NAME }} --name ${{ env.WEBAPP_NAME }} --deployment-container-image-name ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          
+      - name: Configure Web App for HTTPS Only
+        run: |
+          az webapp update --name ${{ env.WEBAPP_NAME }} --resource-group ${{ env.RESOURCE_GROUP }} --set httpsOnly=true
+
+      - name: Configure container settings
+        run: |
           az webapp config container set --name ${{ env.WEBAPP_NAME }} --resource-group ${{ env.RESOURCE_GROUP }} --docker-custom-image-name ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ github.sha }} --docker-registry-server-url https://${{ env.ACR_NAME }}.azurecr.io
+
 
   teardown_infrastructure:
     if: ${{ github.event.inputs.teardown == 'destroy' }}

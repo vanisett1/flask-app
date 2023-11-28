@@ -39,8 +39,9 @@ jobs:
           docker push ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
           az appservice plan create --name ${{ env.WEBAPP_NAME }} --resource-group ${{ env.RESOURCE_GROUP }} --sku FREE --is-linux --location ${{ env.LOCATION }}
           az webapp create --resource-group ${{ env.RESOURCE_GROUP }} --plan ${{ env.WEBAPP_NAME }} --name ${{ env.WEBAPP_NAME }} --deployment-container-image-name ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
+          az webapp config appsettings set --name ${{ env.WEBAPP_NAME }} --resource-group ${{ env.RESOURCE_GROUP }} --settings AUTH_TOKEN=${{ secrets.AUTH_TOKEN }}
           az webapp update --name ${{ env.WEBAPP_NAME }} --resource-group ${{ env.RESOURCE_GROUP }} --set httpsOnly=true
-
+    
   teardown_infrastructure:
     if: ${{ github.event.inputs.teardown == 'destroy' }}
     runs-on: ubuntu-latest

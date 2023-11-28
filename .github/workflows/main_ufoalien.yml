@@ -17,6 +17,7 @@ env:
   LOCATION: eastus
   WEBAPP_NAME: ufoalienwebapp
   IMAGE_NAME: myapp
+  IMAGE_TAG: ${{ github.sha }}
 
 jobs:
   setup_and_deploy:
@@ -24,51 +25,28 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Login to Azure
+      - name: Azure Login
         uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Create Resource Group
-        run: az group create --name ${{ env.RESOURCE_GROUP }} --location ${{ env.LOCATION }}
-
-      - name: Create Azure Container Registry
-        run: az acr create --resource-group ${{ env.RESOURCE_GROUP }} --name ${{ env.ACR_NAME }} --sku Basic
-
-      - name: Log in to Azure Container Registry
-        run: az acr login --name ${{ env.ACR_NAME }}
-
-      - name: Build and push Docker image
+      - name: Create Resources and Deploy
         run: |
-          docker build -t ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ github.sha }} .
-          docker push ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ github.sha }}
-
-      - name: Create Azure App Service Plan
-        run: |
+          az group create --name ${{ env.RESOURCE_GROUP }} --location ${{ env.LOCATION }}
+          az acr create --resource-group ${{ env.RESOURCE_GROUP }} --name ${{ env.ACR_NAME }} --sku Basic
+          az acr login --name ${{ env.ACR_NAME }}
+          docker build -t ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }} .
+          docker push ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
           az appservice plan create --name ${{ env.WEBAPP_NAME }} --resource-group ${{ env.RESOURCE_GROUP }} --sku FREE --is-linux --location ${{ env.LOCATION }}
-
-      - name: Create Azure Web App for Containers
-        run: |
-          az webapp create --resource-group ${{ env.RESOURCE_GROUP }} --plan ${{ env.WEBAPP_NAME }} --name ${{ env.WEBAPP_NAME }} --deployment-container-image-name ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ github.sha }}
-          
-      - name: Configure Web App for HTTPS Only
-        run: |
+          az webapp create --resource-group ${{ env.RESOURCE_GROUP }} --plan ${{ env.WEBAPP_NAME }} --name ${{ env.WEBAPP_NAME }} --deployment-container-image-name ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
           az webapp update --name ${{ env.WEBAPP_NAME }} --resource-group ${{ env.RESOURCE_GROUP }} --set httpsOnly=true
-
-      - name: Configure container settings
-        run: |
-          az webapp config container set --name ${{ env.WEBAPP_NAME }} --resource-group ${{ env.RESOURCE_GROUP }} --docker-custom-image-name ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ github.sha }} --docker-registry-server-url https://${{ env.ACR_NAME }}.azurecr.io
-
 
   teardown_infrastructure:
     if: ${{ github.event.inputs.teardown == 'destroy' }}
     runs-on: ubuntu-latest
     needs: setup_and_deploy
     steps:
-      - name: Login to Azure
-        uses: azure/login@v1
+      - uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
-
-      - name: Tear down Resource Group
-        run: az group delete --name ${{ env.RESOURCE_GROUP }} --yes --no-wait
+      - run: az group delete --name ${{ env.RESOURCE_GROUP }} --yes --no-wait

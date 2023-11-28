@@ -43,6 +43,11 @@ jobs:
           docker build -t ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ github.sha }} .
           docker push ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ github.sha }}
 
+      - name: Create Azure App Service Plan
+        run: |
+          az appservice plan create --name ${{ env.WEBAPP_NAME }} --resource-group ${{ env.RESOURCE_GROUP }} --sku B1 --is-linux --location ${{ env.LOCATION }}
+
+
       - name: Create Azure Web App for Containers
         run: |
           az webapp create --resource-group ${{ env.RESOURCE_GROUP }} --plan ${{ env.WEBAPP_NAME }} --name ${{ env.WEBAPP_NAME }} --deployment-container-image-name ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ github.sha }}

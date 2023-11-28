@@ -1,7 +1,6 @@
 # Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
 # More GitHub Actions for Azure: https://github.com/Azure/actions
 
-
 name: Build, Deploy, and Manage Azure Infrastructure
 
 on:
@@ -19,6 +18,11 @@ jobs:
   setup_infrastructure:
     runs-on: ubuntu-latest
     steps:
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          
       - name: Create Resource Group
         run: az group create --name ufoalien-rg --location eastus
 
@@ -40,14 +44,14 @@ jobs:
         uses: docker/login-action@v2
         with:
           registry: https://vflask.azurecr.io/
-          username: ${{ secrets.AzureAppService_ContainerUsername_1fbbac04975145c1a2480e58c22308c1 }}
-          password: ${{ secrets.AzureAppService_ContainerPassword_fb20cbdb167e473a9832bc0ebd538f69 }}
+          username: ${{ secrets.AzureAppService_ContainerUsername }}
+          password: ${{ secrets.AzureAppService_ContainerPassword }}
 
       - name: Build and push container image to registry
         uses: docker/build-push-action@v3
         with:
           push: true
-          tags: vflask.azurecr.io/${{ secrets.AzureAppService_ContainerUsername_1fbbac04975145c1a2480e58c22308c1 }}/flask-app:${{ github.sha }}
+          tags: vflask.azurecr.io/ufoalien/flask-app:${{ github.sha }}
           file: ./Dockerfile
 
   deploy:
@@ -59,17 +63,22 @@ jobs:
         with:
           app-name: 'ufoalien'
           slot-name: 'production'
-          publish-profile: ${{ secrets.AzureAppService_PublishProfile_2f50cf7fb11f4c43b178acc2fbc21eb3 }}
-          images: 'vflask.azurecr.io/${{ secrets.AzureAppService_ContainerUsername_1fbbac04975145c1a2480e58c22308c1 }}/flask-app:${{ github.sha }}'
+          publish-profile: ${{ secrets.AzureAppService_PublishProfile }}
+          images: 'vflask.azurecr.io/ufoalien/flask-app:${{ github.sha }}'
 
   teardown_infrastructure:
     if: ${{ github.event.inputs.teardown == 'destroy' }}
     runs-on: ubuntu-latest
     needs: [setup_infrastructure, deploy]
     steps:
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
       - name: Tear down Resource Group
-        run: |
-          az group delete --name ufoalien-rg --yes --no-wait
+        run: az group delete --name ufoalien-rg --yes --no-wait
+
 
 
 

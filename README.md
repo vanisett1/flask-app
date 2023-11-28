@@ -95,29 +95,43 @@ This tool sends requests to the FlaskApp API server hosted at `https://ufoalien.
 
 # Continuous Deployment
 
-Our FlaskApp is configured for Continuous Deployment using GitHub Actions, as defined in the `main_ufoalien.yaml` file. This setup automates the process of deploying our Flask application to Azure Web App whenever changes are pushed to the `main` branch.
+Our FlaskApp is configured for Continuous Deployment using GitHub Actions, as defined in the `main_ufoalien.yaml` file. This setup automates the process of deploying our Flask application to an Azure Web App service whenever changes are pushed to the `main` branch.
 
 ## Deployment Workflow
 
-The `main_ufoalien.yaml` workflow consists of two primary jobs: `build` and `deploy`. Here's an overview of each step in the workflow:
+The `main_ufoalien.yaml` workflow encompasses setup, deployment, and optional teardown of the Azure infrastructure, consisting of several key jobs and steps:
 
-### Build Job
+### Setup and Deploy Job
 
-1. **Set up Docker Buildx**: Prepares Docker for building the container image.
-2. **Log in to registry**: Authenticates with Azure Container Registry to store the Docker image.
-3. **Build and push container image to registry**: Creates a Docker image from the Flask app and pushes it to the Azure Container Registry.
+1. **Checkout Repository**: Checks out the codebase for use in the workflow.
+2. **Azure Login**: Logs into Azure using the provided credentials.
+3. **Create Resources and Deploy**: This step involves multiple actions:
+   - Creates an Azure resource group.
+   - Creates an Azure Container Registry (ACR) and enables the admin user.
+   - Logs into ACR and pushes the Docker image built from the Flask app.
+   - Creates an Azure App Service plan.
+   - Creates an Azure Web App for Containers, deploying the Docker image.
+   - Sets an authentication token as an environment variable for the app.
+   - Configures the Web App to enforce HTTPS.
 
-### Deploy Job
+### Teardown Infrastructure Job (Optional)
 
-1. **Deploy to Azure Web App**: Takes the Docker image from the registry and deploys it to the specified Azure Web App. This step also sets the environment for deployment (`production`) and uses a publish profile for authentication.
+This job can be manually triggered to teardown the infrastructure:
 
+1. **Azure Login**: Similar to the deploy job, it starts with logging into Azure.
+2. **Tear Down Resource Group**: Deletes the entire Azure resource group, cleaning up all associated resources.
 
 ## How to Trigger Deployment
 
-The deployment process is triggered automatically whenever changes are pushed to the `main` branch. Additionally, you can manually trigger a deployment using the `workflow_dispatch` event in GitHub Actions.
+- **Automatic Deployment**: Triggered automatically on any push to the `main` branch.
+- **Manual Deployment**: You can manually trigger deployment or infrastructure teardown using the `workflow_dispatch` event in GitHub Actions.
 
 ## Monitoring Deployment
 
-After each push to `main`, you can monitor the progress of your deployment in the Actions tab of your GitHub repository. Successful deployment will update your Flask application on the Azure Web App service.
+The deployment's progress can be monitored in the Actions tab of the GitHub repository. Successful completion of the workflow results in an updated Flask application on the Azure Web App service.
 
-Making this change to deploy flask-api to Azure webapps
+## Additional Notes
+
+- The Flask application is containerized and deployed to an Azure Web App service.
+- Environment variables and sensitive settings are managed securely using GitHub Secrets.
+- The workflow is designed to provide a seamless CI/CD experience, from code push to deployment and optional teardown.

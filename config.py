@@ -1,8 +1,8 @@
-import os
+# config.py
 
-# Load environment variables from .env file
-from dotenv import load_dotenv
-load_dotenv()
-
-# Configuration
-AUTH_TOKEN = os.getenv("AUTH_TOKEN")
+# Example tenant-specific tokens
+TENANTS = {
+    "tenant1": "ovo",
+    "tenant2": "wow",
+    # Add more tenants as needed
+}
